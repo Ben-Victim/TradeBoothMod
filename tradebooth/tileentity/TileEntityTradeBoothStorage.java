@@ -2,17 +2,20 @@ package tradebooth.tileentity;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import cpw.mods.fml.common.network.PacketDispatcher;
-import cpw.mods.fml.common.network.Player;
-import tradebooth.handler.PacketHandler;
+
+import tradebooth.TradeBoothMod;
+import tradebooth.packet.Packet0SetPlayerName;
+import tradebooth.packet.Packet3RequestTileEntityData;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.network.packet.Packet250CustomPayload;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.util.Constants;
 
-public class TileEntityTradeBoothStorage extends TileNetworkEntity implements IInventory{
+public class TileEntityTradeBoothStorage extends TileEntity implements IInventory{
 	
 	private ItemStack[] inventory;
 	private String playerOwner;
@@ -68,35 +71,23 @@ public class TileEntityTradeBoothStorage extends TileNetworkEntity implements II
 	}
 
 	@Override
-	public String getInvName() {
-		return "tradebooth.tileentitytradeboothstorage";
-	}
-
-	@Override
 	public int getInventoryStackLimit() {
 		return 64;
 	}
 
 	@Override
 	public boolean isUseableByPlayer( EntityPlayer player ) {
-		return 	this.worldObj.getBlockTileEntity( this.xCoord, this.yCoord, this.zCoord ) == this &&
+		return 	this.worldObj.getTileEntity( this.xCoord, this.yCoord, this.zCoord ) == this &&
 				player.getDistanceSq( xCoord + 0.5, yCoord + 0.5, zCoord + 0.5 ) < 64;
 	}
 
 	@Override
-	public void openChest() {
-	}
-
-	@Override
-	public void closeChest() {
-	}
-	@Override
 	public void readFromNBT( NBTTagCompound tagCompound ){
 		super.readFromNBT( tagCompound );
 		
-		NBTTagList tagList = tagCompound.getTagList( "Inventory" );
+		NBTTagList tagList = tagCompound.getTagList( "Inventory", Constants.NBT.TAG_COMPOUND );
 		for( int i = 0; i < tagList.tagCount(); i++ ){
-			NBTTagCompound tag = (NBTTagCompound) tagList.tagAt( i );
+			NBTTagCompound tag = (NBTTagCompound) tagList.getCompoundTagAt( i );
 			byte slot = tag.getByte( "Slot" );
 			if( slot >= 0 && slot < this.inventory.length ){
 				this.inventory[slot] = ItemStack.loadItemStackFromNBT( tag );
@@ -127,47 +118,81 @@ public class TileEntityTradeBoothStorage extends TileNetworkEntity implements II
 	public void setPlayerOwner( String newOwner ){
 		this.playerOwner = newOwner;
 	}
-	@Override
-	public void sendTileEntityDataPacketToPlayer( Player destinationPlayer ){
-		if( this.playerOwner != null && !this.playerOwner.isEmpty() ){
-			//I made this check in case I decide that ownership only takes place on the initial block activation instead of on placement
-			
-			PacketDispatcher.sendPacketToPlayer( this.createTileEntityDataPacket(), destinationPlayer );
-		}
-	}
-	@Override
-	public void sendTileEntityDataPacketToNearbyPlayers( int dimensionID ){
-		if( this.playerOwner != null && !this.playerOwner.isEmpty() ){
-			PacketDispatcher.sendPacketToAllAround( this.xCoord, this.yCoord, this.zCoord, 220, dimensionID, this.createTileEntityDataPacket() );
-		}
-	}
-	@Override
-	public Packet250CustomPayload createTileEntityDataPacket(){
-		int dataLength = 13 + this.getPlayerOwner().length(); // 13 = 1 byte + 3 int
-		ByteArrayOutputStream byteArrayStream = new ByteArrayOutputStream( dataLength );
-		DataOutputStream outputStream = new DataOutputStream( byteArrayStream );
+	public boolean canAcceptItemStacks( ItemStack itemStack1, ItemStack itemStack2 ){
+		//This method will handle null parameter stacks
 		
-		try{
-			outputStream.writeByte( PacketHandler.PACKET_RECEIVE_PLAYER_NAME );
-			outputStream.writeInt( this.xCoord );
-			outputStream.writeInt( this.yCoord );
-			outputStream.writeInt( this.zCoord );
-			outputStream.writeInt( this.getPlayerOwner().length() ); //The length of the owner's name
-			outputStream.writeBytes( this.getPlayerOwner() );
+		//Count how many stacks we need to accept
+		int stacksToAccept = 0;
+		if( itemStack1 != null ){ stacksToAccept++;	}
+		if( itemStack2 != null ){ stacksToAccept++; }
+		
+		//Check if there are empty itemStacks in the inventory first
+		int emptyStacks = 0;
+		for( int i = 0; i < this.getSizeInventory() || emptyStacks == stacksToAccept; i++ ){
+			ItemStack checkStack = this.getStackInSlot( i );
+			if( checkStack == null ){
+				emptyStacks++;
+			}
 		}
-		catch( Exception e){
-			e.printStackTrace();
+		if( emptyStacks >= stacksToAccept ){ //If the inventory has enough stacks, then we can accept the two stacks
+			return true;
 		}
 		
-		Packet250CustomPayload packet = new Packet250CustomPayload();
-		packet.channel = "TradeBooth";
-		packet.data = byteArrayStream.toByteArray();
-		packet.length = byteArrayStream.size();
-		return packet;
+		//At this point there aren't enough stacks to allow the desired stacks in
+		//So check for space among half full stacks
+		
+		//Check to see if the itemStack items are identical
+		boolean itemStacksAreIdentical = false;
+		if( itemStack1 != null && itemStack1.isItemEqual( itemStack2 ) ){ //If both are not null and are the same item
+			if( itemStack1.hasTagCompound() && itemStack2.hasTagCompound() ){ //If both have tag compounds
+				if( itemStack1.getTagCompound().equals( itemStack2.getTagCompound() ) ){ //If both tag compounds are identical
+					itemStacksAreIdentical = true;
+				}	
+			}
+			else if( !itemStack1.hasTagCompound() && !itemStack2.hasTagCompound() ){ //If neither have tag compounds (then they are both the same item without tag compounds)
+				itemStacksAreIdentical = true;
+			}
+		}
+		if( itemStacksAreIdentical ){ //Then we're going to combine these items and count if the player has enough of them
+			return canAcceptItemStack( itemStack1, itemStack1.stackSize + itemStack2.stackSize );
+		}
+		else if( itemStack1 == null || itemStack2 == null ){
+			if( itemStack1 == null ){
+				return canAcceptItemStack( itemStack2 );
+			}
+			else{
+				return canAcceptItemStack( itemStack1 );
+			}
+		}
+		else if( canAcceptItemStack( itemStack1 ) && canAcceptItemStack( itemStack2 ) ){
+			return true;
+		}
+		
+		return false;
+	}
+	public boolean canAcceptItemStack( ItemStack itemStack, int itemCount ){ //Special version of this method for itemstack sums greater than 64
+		int count = 0;
+		for( int i = 0; i < this.getSizeInventory(); i++ ){
+			ItemStack inventoryStack = this.getStackInSlot( i );
+			if( inventoryStack != null && inventoryStack.isItemEqual( itemStack ) ){ //If we found a stack with the same item as the priceStack
+				if( inventoryStack.stackSize <= inventoryStack.getMaxStackSize() ){
+					count += inventoryStack.getMaxStackSize() - inventoryStack.stackSize;
+				}
+			}
+		}
+		if( count >= itemCount ){
+			return true;
+		}
+		return false;
 	}
 	public boolean canAcceptItemStack( ItemStack itemStack ){
-		boolean hasEmptyInventoryStack = this.hasEmptyInventoryStack();
-		if( !hasEmptyInventoryStack ){ //If an empty itemstack was not found
+		if( this.hasEmptyInventoryStack() ){ //If there is an empty slot
+			return true;
+		}
+		else if( itemStack.hasTagCompound() ){ //Since there is no empty slot, and this item has tagCompound, it can't be combined with any other slot
+			return false;
+		}
+		else{ //If there isn't an empty slot
 			//Check for space among same-itemstacks with enough empty space
 			int count = 0;
 			for( int i = 0; i < this.getSizeInventory(); i++ ){
@@ -183,17 +208,21 @@ public class TileEntityTradeBoothStorage extends TileNetworkEntity implements II
 				return true;
 			}
 		}
-		else{ //If an empty itemstack was found
-			return true;
-		}
 		return false;
 	}
 	public boolean canProvideItemStack( ItemStack itemStack ){
 		int count = 0;
 		for( int i = 0; i < this.getSizeInventory(); i++ ){
 			ItemStack checkStack = this.getStackInSlot( i );
-			if( checkStack != null && checkStack.isItemEqual( itemStack ) ){
-				count += checkStack.stackSize;
+			if( checkStack != null && checkStack.isItemEqual( itemStack ) ){ //If we found a stack with the same item as the itemStack
+				if( itemStack.hasTagCompound() ){//If the itemStack has a tagCompound
+					if( checkStack.hasTagCompound() && checkStack.getTagCompound().equals( itemStack.getTagCompound() ) ){  //If the stacks have matching tagCompounds
+						count += checkStack.stackSize;
+					}
+				}
+				else if( !checkStack.hasTagCompound() ){ //Previous if statement says itemStack doesn't have a tagCompound, so if checkStack does this else if fails
+					count += checkStack.stackSize;
+				}
 			}
 		}
 		if( count >= itemStack.stackSize ){
@@ -254,11 +283,22 @@ public class TileEntityTradeBoothStorage extends TileNetworkEntity implements II
 		return count;
 	}
 
-	public void removeStack(ItemStack removeStack) {
+	public void removeStack( ItemStack removeStack ) {
 		int numberToRemove = removeStack.stackSize;
 		for( int i = 0; i < this.getSizeInventory(); i++ ){
 			ItemStack checkStack = this.getStackInSlot( i );
-			if( checkStack != null && checkStack.isItemEqual( removeStack ) ){
+			boolean isSuitableStack = false;
+			if( checkStack != null && checkStack.isItemEqual( removeStack ) ){ //If both stacks have the same item
+				if( removeStack.hasTagCompound() ){
+					if( checkStack.hasTagCompound() && checkStack.getTagCompound().equals( removeStack.getTagCompound() ) ){
+						isSuitableStack = true;
+					}
+				}
+				else if( !checkStack.hasTagCompound() ){
+					isSuitableStack = true;
+				}
+			}
+			if( isSuitableStack ){
 				if( checkStack.stackSize > numberToRemove ){ //If the player has more than enough in this stack to complete the removal
 					checkStack.stackSize -= numberToRemove;
 					numberToRemove = 0;
@@ -271,18 +311,37 @@ public class TileEntityTradeBoothStorage extends TileNetworkEntity implements II
 				}
 			}
 		}
-		
-	}
-
-	@Override
-	public boolean isInvNameLocalized() {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	@Override
 	public boolean isItemValidForSlot(int i, ItemStack itemstack) {
-		// TODO Auto-generated method stub
 		return true;
+	}
+
+	@Override
+	public String getInventoryName() {
+		return null;
+	}
+
+	@Override
+	public boolean hasCustomInventoryName() {
+		return false;
+	}
+
+	@Override
+	public void openInventory() {
+	}
+
+	@Override
+	public void closeInventory() {
+	}
+
+	@Override
+	public void validate(){
+		super.validate();
+		if( this.worldObj.isRemote ){
+			//Client requests extra tile entity data, which is just the trade booth block's owner's name
+			TradeBoothMod.network.sendToServer( new Packet3RequestTileEntityData( this.xCoord, this.yCoord, this.zCoord ) );
+		}
 	}
 }

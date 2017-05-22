@@ -1,8 +1,13 @@
 package tradebooth.gui;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.lwjgl.opengl.GL11;
+
 import tradebooth.CommonProxy;
 import tradebooth.container.ContainerTradeBoothTopNonOwner;
+import tradebooth.container.ContainerTradeBoothTopOwner;
 import tradebooth.tileentity.TileEntityTradeBoothTop;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -24,7 +29,9 @@ public class GuiTradeBoothTopNonOwner extends GuiContainer{
 	}
 	@Override
 	protected void drawGuiContainerForegroundLayer( int par1, int par2 ){
-		fontRenderer.drawString( this.getOwnerName() + "'s Booth", 8, -26, 4210752 );
+		fontRendererObj.drawString( this.getOwnerName() + "'s Booth", 8, -26, 4210752 );
+		fontRendererObj.drawString( "Price", 12, 12, 4210752 );
+		fontRendererObj.drawString( "Price", 102, 12, 4210752 );
 	}
 	
 	@Override
@@ -33,6 +40,6 @@ public class GuiTradeBoothTopNonOwner extends GuiContainer{
 		this.mc.renderEngine.bindTexture( new ResourceLocation( "tradebooth", CommonProxy.GuiTradeBoothTopNonOwnerPNG ) );
 		int x = ( width - xSize ) / 2;
 		int y = ( height - ySize ) / 2;
-		this.drawTexturedModalRect( x, y - 34, 0, 0, 175, 210 );
+		this.drawTexturedModalRect( x, y - 34, 0, 0, 175, 223 );
 	}
 }

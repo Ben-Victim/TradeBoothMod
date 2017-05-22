@@ -17,7 +17,7 @@ public class GuiHandler implements IGuiHandler{
 
 	@Override
 	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		TileEntity tileEntity = world.getBlockTileEntity( x, y, z );
+		TileEntity tileEntity = world.getTileEntity( x, y, z );
 		if( tileEntity instanceof TileEntityTradeBoothStorage ){
 			return new ContainerTradeBoothStorage( player.inventory, (TileEntityTradeBoothStorage) tileEntity );
 		}
@@ -34,7 +34,7 @@ public class GuiHandler implements IGuiHandler{
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		TileEntity tileEntity = world.getBlockTileEntity( x, y, z );
+		TileEntity tileEntity = world.getTileEntity( x, y, z );
 		if( tileEntity instanceof TileEntityTradeBoothStorage ){
 			return new GuiTradeBoothStorage( player.inventory, (TileEntityTradeBoothStorage) tileEntity );
 		}

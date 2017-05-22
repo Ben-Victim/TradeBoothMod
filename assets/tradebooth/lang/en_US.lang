@@ -1,0 +1,11 @@
+tile.blockTradeBoothStorageOak.name=Oak Trade Booth Storage
+tile.blockTradeBoothStorageSpruce.name=Spruce Trade Booth Storage
+tile.blockTradeBoothStorageBirch.name=Birch Trade Booth Storage
+tile.blockTradeBoothStorageJungle.name=Jungle Trade Booth Storage
+tile.blockTradeBoothStorageAdmin.name=Admin Trade Booth Storage
+
+item.TradeBoothTopOak.name=Oak Trade Booth Top
+item.TradeBoothTopSpruce.name=Spruce Trade Booth Top
+item.TradeBoothTopBirch.name=Birch Trade Booth Top
+item.TradeBoothTopJungle.name=Jungle Trade Booth Top
+item.TradeBoothTopAdmin.name=Admin Trade Booth Top

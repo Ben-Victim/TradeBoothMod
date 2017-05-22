@@ -3,7 +3,6 @@ package tradebooth.container;
 import java.util.Iterator;
 
 import tradebooth.TradeBoothSettings;
-import tradebooth.gui.SlotBoothCover;
 import tradebooth.tileentity.TileEntityTradeBoothTop;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,46 +11,10 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
-public class ContainerTradeBoothTopOwner extends Container{
-
-	protected TileEntityTradeBoothTop tileEntity;
-	public static final int SLOTS_WIDE = 4;
-	public static final int SLOTS_TALL = 4;
+public class ContainerTradeBoothTopOwner extends ContainerTradeBoothTopNonOwner{
 	
 	public ContainerTradeBoothTopOwner( InventoryPlayer inventoryPlayer, TileEntityTradeBoothTop tileEntity ){
-		this.tileEntity = tileEntity;
-		
-		
-		for( int y = 0; y < SLOTS_TALL; y++ ){
-			for( int x = 0; x < SLOTS_WIDE; x++ ){
-				if( TradeBoothSettings.requireItemStack ){
-					this.addSlotToContainer( new Slot( this.tileEntity, x + y * SLOTS_WIDE, 26 + x * 36, 10 + y * 21 ) );
-				}
-				else{
-					this.addSlotToContainer( new Slot( this.tileEntity, x + y * SLOTS_WIDE, 26 + x * 36, 10 + y * 21 ) );
-				}
-			}
-		}
-		this.bindPlayerInventory( inventoryPlayer );
-
-		//Cover slot
-		this.addSlotToContainer( new SlotBoothCover( this.tileEntity, SLOTS_WIDE * SLOTS_TALL, 26, -11 ) );
-	}
-	
-	@Override
-	public boolean canInteractWith( EntityPlayer player ){
-		return tileEntity.isUseableByPlayer( player );
-	}
-	
-	protected void bindPlayerInventory( InventoryPlayer inventoryPlayer ){
-		for( int y = 0; y < 3; y++ ){
-			for( int x = 0; x < 9; x++ ){
-				this.addSlotToContainer( new Slot( inventoryPlayer, x + y * 9 + 9, 8 + x * 18, 96 + y * 18 ) );
-			}
-		}
-		for( int i = 0; i < 9; i++ ){
-			this.addSlotToContainer( new Slot( inventoryPlayer, i, 8 + i * 18, 154 ) );
-		}
+		super( inventoryPlayer, tileEntity );
 	}
 	@Override
 	public ItemStack transferStackInSlot( EntityPlayer player, int inventorySlotIndex ){
@@ -89,14 +52,11 @@ public class ContainerTradeBoothTopOwner extends Container{
 		}
 		return itemStack;
 	}
-	public int totalSlotsInContainer(){ //Not including the cover slot
-		return SLOTS_WIDE * SLOTS_TALL;
-	}
-	public int totalSlotsInPlayer(){
-		return 36;
-	}
 	@Override
 	public ItemStack slotClick( int slotIndex, int mouseButtonIndex, int keyIndex, EntityPlayer entityPlayer ){
+		
+		//System.out.println( slotIndex + ", " + mouseButtonIndex + ", " + keyIndex );
+		
 		if( !TradeBoothSettings.requireItemStack ){
 			if( keyIndex == 4 ){
 				keyIndex = 0;
@@ -114,11 +74,11 @@ public class ContainerTradeBoothTopOwner extends Container{
 	            if( slotIndex == -999 ){
 	                if( inventoryPlayer.getItemStack() != null && slotIndex == -999 ){
 	                    if (mouseButtonIndex == 0){
-	                        entityPlayer.dropPlayerItem(inventoryPlayer.getItemStack());
+	                        entityPlayer.dropPlayerItemWithRandomChoice(inventoryPlayer.getItemStack(), false );
 	                        inventoryPlayer.setItemStack((ItemStack)null);
 	                    }
 	                    if (mouseButtonIndex == 1){
-	                        entityPlayer.dropPlayerItem(inventoryPlayer.getItemStack().splitStack(1));
+	                        entityPlayer.dropPlayerItemWithRandomChoice( inventoryPlayer.getItemStack().splitStack(1), false );
 	
 	                        if (inventoryPlayer.getItemStack().stackSize == 0)
 	                        {
@@ -131,11 +91,10 @@ public class ContainerTradeBoothTopOwner extends Container{
 	            	//Removed: If shift click
 	            }
 	            else{
-	            	
 	                if( slotIndex < 0 ){
 	                    return null;
 	                }
-	                else if( slotIndex >= 0 && slotIndex < this.totalSlotsInContainer() ){ //0-15
+	                else if( (slotIndex >= 0 && slotIndex < 16 ) || ( slotIndex >= 53 && slotIndex < 61 ) ){
 	                	//If clicking a trade booth top slot
 	                	Slot clickSlot = (Slot) this.inventorySlots.get( slotIndex );
 	                	if( mouseButtonIndex == 0 ){ //Left click
@@ -168,7 +127,7 @@ public class ContainerTradeBoothTopOwner extends Container{
 	                				clickSlot.onSlotChanged();
 	                			}
 	                			else{
-	                				if( clickSlot.getStack().itemID == inventoryPlayer.getItemStack().itemID &&
+	                				if( clickSlot.getStack().getItem() == inventoryPlayer.getItemStack().getItem() &&
 	                					clickSlot.getStack().getItemDamage() == inventoryPlayer.getItemStack().getItemDamage() ){
 	                					//If items are identical
 	                					if( clickSlot.getStack().stackSize < clickSlot.getStack().getMaxStackSize() ){
@@ -186,7 +145,8 @@ public class ContainerTradeBoothTopOwner extends Container{
 	                		}
 	                	}
 	                }
-	                else if( slotIndex == ( totalSlotsInContainer() + totalSlotsInPlayer() ) ){ //Slot index 52 (the cover slot)
+	                else if( slotIndex == 52 ){ //Slot index 52 (the cover slot)
+	                	entityPlayer.worldObj.markBlockForUpdate( this.tileEntity.xCoord, this.tileEntity.yCoord, this.tileEntity.zCoord );
 	                	return super.slotClick( slotIndex, mouseButtonIndex, keyIndex, entityPlayer );
 	                }
 	                else{
@@ -232,7 +192,7 @@ public class ContainerTradeBoothTopOwner extends Container{
 		                            slot2.onPickupFromSlot(entityPlayer, inventoryPlayer.getItemStack());
 		                        }
 		                        else if (slot2.isItemValid(itemstack4)){
-		                            if (itemstack1.itemID == itemstack4.itemID && itemstack1.getItemDamage() == itemstack4.getItemDamage() && ItemStack.areItemStackTagsEqual(itemstack1, itemstack4)){
+		                            if (itemstack1.getItem() == itemstack4.getItem() && itemstack1.getItemDamage() == itemstack4.getItemDamage() && ItemStack.areItemStackTagsEqual(itemstack1, itemstack4)){
 		                                k1 = mouseButtonIndex == 0 ? itemstack4.stackSize : 1;
 		
 		                                if (k1 > slot2.getSlotStackLimit() - itemstack1.stackSize){
@@ -256,7 +216,7 @@ public class ContainerTradeBoothTopOwner extends Container{
 		                                inventoryPlayer.setItemStack(itemstack1);
 		                            }
 		                        }
-		                        else if (itemstack1.itemID == itemstack4.itemID && itemstack4.getMaxStackSize() > 1 && (!itemstack1.getHasSubtypes() || itemstack1.getItemDamage() == itemstack4.getItemDamage()) && ItemStack.areItemStackTagsEqual(itemstack1, itemstack4)){
+		                        else if (itemstack1.getItem() == itemstack4.getItem() && itemstack4.getMaxStackSize() > 1 && (!itemstack1.getHasSubtypes() || itemstack1.getItemDamage() == itemstack4.getItemDamage()) && ItemStack.areItemStackTagsEqual(itemstack1, itemstack4)){
 		                            k1 = itemstack1.stackSize;
 		
 		                            if (k1 > 0 && k1 + itemstack4.stackSize <= itemstack4.getMaxStackSize()){

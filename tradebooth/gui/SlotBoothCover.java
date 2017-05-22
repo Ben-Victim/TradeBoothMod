@@ -1,8 +1,10 @@
 package tradebooth.gui;
 
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
 public class SlotBoothCover extends Slot{
@@ -13,7 +15,7 @@ public class SlotBoothCover extends Slot{
 
 	@Override
 	public boolean isItemValid( ItemStack itemStack ){
-		return itemStack.itemID == Block.cloth.blockID;
+		return itemStack.getItem() == Item.getItemFromBlock( Blocks.wool );
 	}
 	@Override
 	public int getSlotStackLimit(){

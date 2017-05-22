@@ -28,9 +28,9 @@ public class GuiTradeBoothStorage extends GuiContainer{
 
 	@Override
 	protected void drawGuiContainerForegroundLayer( int par1, int par2 ){
-		fontRenderer.drawString( "Trade Booth Storage", 8, -26, 4210752 );
-		fontRenderer.drawString( "Owner: " + this.getOwnerName(), 8, -2, 4210752 );
-		fontRenderer.drawString( StatCollector.translateToLocal( "container.inventory" ), 8, ySize - 96 + 14, 4210752 );
+		fontRendererObj.drawString( "Trade Booth Storage", 8, -26, 4210752 );
+		fontRendererObj.drawString( "Owner: " + this.getOwnerName(), 8, -2, 4210752 );
+		fontRendererObj.drawString( StatCollector.translateToLocal( "container.inventory" ), 8, ySize - 96 + 14, 4210752 );
 	}
 	
 	@Override

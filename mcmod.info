@@ -1,0 +1,11 @@
+[
+{
+    "modid": "tradeboothmod",
+    "name": "Trade Booth Mod",
+    "description": "Booths for Player Trading",
+    "version": "1.7.10.1",
+    "mcversion": "1.7.10",
+    "url": "www.minecraftforum.net/topic/1688659-",
+    "authors": ["aero_c"]
+}
+]

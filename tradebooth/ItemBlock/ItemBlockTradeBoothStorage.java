@@ -2,13 +2,14 @@ package tradebooth.ItemBlock;
 
 import tradebooth.TradeBoothMod;
 import tradebooth.block.BlockTradeBoothStorage;
+import net.minecraft.block.Block;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 
 public class ItemBlockTradeBoothStorage extends ItemBlock{
 
-	public ItemBlockTradeBoothStorage(int par1) {
-		super(par1);
+	public ItemBlockTradeBoothStorage( Block block ){
+		super( block );
 		this.setHasSubtypes( true );
 	}
 	@Override

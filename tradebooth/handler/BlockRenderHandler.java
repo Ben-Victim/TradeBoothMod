@@ -24,13 +24,13 @@ public class BlockRenderHandler implements ISimpleBlockRenderingHandler{
 	}
 
 	@Override
-	public boolean shouldRender3DInInventory() {
-		return true;
+	public int getRenderId() {
+		return 0;
 	}
 
 	@Override
-	public int getRenderId() {
-		return 0;
+	public boolean shouldRender3DInInventory( int modelId ) {
+		return false;
 	}
 
 }

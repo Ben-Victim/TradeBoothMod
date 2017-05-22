@@ -7,10 +7,10 @@ import net.minecraft.block.BlockColored;
 import net.minecraft.client.renderer.EntityRenderer;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.src.ModLoader;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 
 public class RenderTradeBoothTop{
@@ -113,37 +113,37 @@ public class RenderTradeBoothTop{
 		renderBlocks.renderFaceZNeg( block, x, y, z, BlockTradeBoothTop.iconArray[meta] );
 		renderBlocks.renderFaceZPos( block, x, y, z, BlockTradeBoothTop.iconArray[meta] );
 		
-		TileEntityTradeBoothTop tileEntity = (TileEntityTradeBoothTop) renderBlocks.blockAccess.getBlockTileEntity( x, y, z );
+		TileEntityTradeBoothTop tileEntity = (TileEntityTradeBoothTop) renderBlocks.blockAccess.getTileEntity( x, y, z );
 		ItemStack coverItemStack = tileEntity.getStackInSlot( 16 );
-		if( coverItemStack != null && coverItemStack.itemID == Block.cloth.blockID ){
+		if( coverItemStack != null && coverItemStack.getItem() == Item.getItemFromBlock( Blocks.wool ) ){
 			int woolMeta = coverItemStack.getItemDamage();		
 		
 			//Top cover
 			renderBlocks.setRenderBounds( 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F );
 			tessellator.setColorOpaque_F( 0.75F, 0.75F, 0.75F );
-			renderBlocks.renderFaceYPos( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
-			renderBlocks.renderFaceYNeg( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceYPos( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceYNeg( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
 			
 			//Side flaps (cover)
 			renderBlocks.setRenderBounds( 0.0F, 1.0F, 1.0F, 1.0F, 0.75F, 1.0F ); //south flap
 			tessellator.setColorOpaque_F( 0.75F, 0.75F, 0.75F );
-			renderBlocks.renderFaceZPos( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
-			renderBlocks.renderFaceZNeg( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceZPos( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceZNeg( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
 			
 			renderBlocks.setRenderBounds( 0.0F, 1.0F, 0.0F, 1.0F, 0.75F, 0.0F ); //north flap
 			tessellator.setColorOpaque_F( 0.75F, 0.75F, 0.75F );
-			renderBlocks.renderFaceZPos( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
-			renderBlocks.renderFaceZNeg( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceZPos( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceZNeg( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
 			
 			renderBlocks.setRenderBounds( 0.0F, 1.0F, 0.0F, 0.0F, 0.75F, 1.0F ); //west flap
 			tessellator.setColorOpaque_F( 0.75F, 0.75F, 0.75F );
-			renderBlocks.renderFaceXPos( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
-			renderBlocks.renderFaceXNeg( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceXPos( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceXNeg( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
 			
 			renderBlocks.setRenderBounds( 1.0F, 1.0F, 0.0F, 1.0F, 0.75F, 1.0F ); //east flap
 			tessellator.setColorOpaque_F( 0.75F, 0.75F, 0.75F );
-			renderBlocks.renderFaceXPos( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
-			renderBlocks.renderFaceXNeg( block, x, y, z, Block.cloth.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceXPos( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
+			renderBlocks.renderFaceXNeg( block, x, y, z, Blocks.wool.getIcon( 0, woolMeta ) );
 		}
 		
 		return true;
